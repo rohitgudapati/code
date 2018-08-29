@@ -1,0 +1,199 @@
+Task 1:-
+
+Scala "Left Join":-
+
+*****************
+
+import scala.io.Source
+
+
+
+object join{
+
+		def main(args: Array[String]){
+
+        val pay_list = Source.fromFile("employee_pay.csv")
+
+        val lines = pay_list.getLines
+
+
+
+        var pay_list_map = Map("id" -> "salary,bonus")
+
+
+
+        for(line <- lines){
+
+
+
+          //println(line)
+
+          val pay_list_line = line.split(",",2)
+
+          pay_list_map += (pay_list_line(0) -> pay_list_line(1))
+
+        }
+
+
+
+        val names_list = Source.fromFile("employee_names.csv")
+
+        val names_lines = names_list.getLines
+
+
+
+        for(line1 <- names_lines){
+
+
+
+          //println(line)
+
+          val name_list_line = line1.split(",",2)
+
+
+
+          val temp = pay_list_map(name_list_line(0))
+
+
+
+          println(line1 + "," + temp)
+
+//          name_list_map += (name_list_line(0) -> name_list_line(1))
+
+        }
+
+
+
+    }
+
+}
+
+
+
+
+
+Task2:-
+
+	
+
+NameMapper.java 
+
+****************
+
+	
+
+	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException{
+
+		
+
+		//Splitting the data in key value pairs ( id, fname + lname)
+
+		String[] record = value.toString().split(",",2);
+
+		context.write(new Text(record[0]), new Text(record[1]));
+
+	}
+
+	
+
+SalaryMapper.java 
+
+******************
+
+	
+
+	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException{
+
+		
+
+		//Splitting data in key pair value. ( id, salary + bonus)
+
+		String[] record = value.toString().split(",",2);
+
+		context.write(new Text(record[0]), new Text(record[1]));	
+
+	}
+
+	
+
+	
+
+Reducer.java
+
+*************************
+
+public void reduce(Text key, Iterable<Text> value, Context context) throws IOException, InterruptedException{
+
+	
+
+		String fnameLname = null;
+
+		String salaryBonus = null;
+
+		
+
+		//Iterate though all key pair value and get the First Name, Last Name and Salary, Bonus
+
+		for(Text temp: value) {
+
+			name = temp.toString().subString(1);		
+
+			salary = temp.toString().subString(1);	
+
+		}
+
+		
+
+		// If We don't get the first name and last name we will not write to context
+
+		if(fnameLname != null)
+
+			context.write(new Text(key), new Text(fnameLname + "," + salaryBonus));	
+
+	}
+
+	
+
+// Driver class 
+
+Emp.java
+
+*********
+
+	
+
+	 public static void main(String[] args) throws IOException, InterruptedException{
+
+
+		Configuration config = new Configuration();
+
+		Job job = new Job(config, "Emp");
+
+		
+
+		job.setJarByClass(Emp.class);
+
+		job.setJobName("Emp");
+
+		
+
+		job.setMapperClass(NameMapper.class);
+
+		job.setMapOutputKeyClass(Text.class);
+
+		job.setMapOutputValueClass(Text.class);
+
+		job.setMapperClass(SalaryMapper.class);
+
+		job.setMapOutputKeyClass(Text.class);
+
+		job.setMapOutputValueClass(Text.class);
+
+		job.setReducerClass(Reducer.class);
+
+		job.setOutputKeyClass(Text.class);
+
+		job.setOutputValueClass(Text.class);
+
+
+
