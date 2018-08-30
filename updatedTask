@@ -1,0 +1,35 @@
+
+object join {
+    def main(args: Array[String]) {
+		
+      	val pay_list = scala.io.Source.fromFile("employee_pay.csv").getLines
+
+      	var pay_list_map = Map("id" -> "salary,bonus")
+
+      	for(salary <- pay_list){
+			
+			// Splittiing the row 
+      		val salaries = salary.split(",",2)
+      		
+			//Storing the key pair value 
+      		pay_list_map += (salaries(0) -> salaries(1))
+      	}
+
+      	println(pay_list_map)
+
+      	val names_list = scala.io.Source.fromFile("employee_names.csv").getLines
+
+      	for(name <- names_list){
+      		
+			//Splitting the row
+			val each_name = name.split(",",2)
+      		
+			//Search in Salary map for each key
+      		val second_file = pay_list_map(each_name(0))
+      		
+			//Printing First name, Last name and Salary and Bonus
+      		println(name + "," + second_file)
+
+      	}
+    }
+ }
