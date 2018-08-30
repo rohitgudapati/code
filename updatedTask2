@@ -1,0 +1,72 @@
+Name_Mapper.java ==> Mapper class to map the 1st table (Id, First Name, Last Name)
+=============================================================
+	@Override
+	public void map(LongWritable inputKey, Text inputValue, Context context) throws IOException, InterruptedException{
+		
+		//Splitting the data in key value pairs ( id, fname + lname)
+		String[] record = inputValue.toString().split(",");
+		
+		//Prefix '0_' specifies its an employee name
+		context.write(new Text(record[0]), new Text("0_"+record[1]+","+record[2]));
+	}
+	
+Salary_Mapper.java ==> Mapper class to map the 2nd table (Id, Salary, Bonus)
+=====================================================
+	@Override
+	public void map(LongWritable inputKey, Text inputValue, Context context) throws IOException, InterruptedException{
+		
+		//Splitting data in key pair value. ( id, salary + bonus)
+		String[] record = inputValue.toString().split(",");
+		
+		 //Prefix '1_' specifies its an employee Salary
+		context.write(new Text(record[0]), new Text("1_"+record[1]+","+record[2]));	
+	}
+	
+	
+Reducer.java ==> Reducer 
+======================================================================================================================	
+public void reduce(Text inputKey, Iterable<Text> inputValue, Context context) throws IOException, InterruptedException{
+	
+		String name = null;
+		String salary = null;
+		
+		for(Text val: inputValue) {
+			
+			if(val.toString().startsWith("0_"))
+				name = val.toString().subString(1);		//Remove the prefix "0_"
+			
+			else if(val.toString().startsWith("1_"))
+				salary = val.toString().subString(1);	//Remove the prefix "1_"
+		}
+		
+		// If We don't get the first name and last name we will not write to context
+
+		if(name != null)			
+			context.write(new Text(inputKey), new Text(name + "," + salary));	
+	}
+
+Driver class we need to load two separate Dataset with two mappers and one reducer 
+=============================================================================
+ 	public static void main(String[] args) throws IOException, InterruptedException{
+	
+		Configuration config = new Configuration();
+		Job job = new Job(config, "Emp");
+		
+		job.setJarByClass(Emp.class);
+		job.setJobName("Emp");
+		
+		// Mapper 1
+		job.setMapperClass(Name_Mapper.class);
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(Text.class);
+		
+		//Mapper 2
+		job.setMapperClass(Salary_Mapper.class);
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(Text.class);
+		
+		//Reducer
+		job.setReducerClass(Reducer.class);
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(Text.class);
+		
